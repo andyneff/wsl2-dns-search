@@ -43,8 +43,8 @@ cat - >> "${WSL2_DNS_SEARCH_SCRIPT}" << 'EOF'
   if ! grep -q "^ *search" /etc/resolv.conf; then
     sed -i '$asearch '"${domain}" /etc/resolv.conf
   else
-    sed -i '/^ *search .*'"${domain}"'( |$)/n;
-            s/^ *search .*/& '"${domain}/" /etc/resolv.conf
+    sed -Ei '/^ *search .*'"${domain}"'( |$)/n;
+             s/^ *search .*/& '"${domain}/" /etc/resolv.conf
   fi
 done
 EOF
