@@ -1,0 +1,4 @@
+* text=auto
+
+*.env eol=lf
+*.bsh eol=lf

@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+set -eu
+
+if [ ${EUID:-$(id -u)} -ne 0 ]; then
+  echo "You need to run this as root"
+  exit 1
+fi
+
+source "$(\cd "$(dirname "${BASH_SOURCE[0]}")"; \pwd)"/common.env
+
+if ! command -v &> /dev/null; then
+  source /etc/os-release
+
+  case "${ID}" in
+    alpine)
+      apk add --no-cache sudo
+      ;;
+    *)
+      echo "You need to install sudo for this to work right"
+      # You can use gosu or su-exec, but that is not secure. Run this before running this script:
+      # function sudo()
+      # {
+      #   gosu root "${@}"
+      # }
+      # export -f sudo
+      ;;
+  esac
+fi
+
+# profile
+echo "sudo \"${WSL2_DNS_SEARCH_SCRIPT}\" & disown" > "${WSL2_DNS_SEARCH_PROFILE}"
+
+# sudoers
+echo "ALL ALL=(ALL) NOPASSWD: ${WSL2_DNS_SEARCH_SCRIPT}" > "${WSL2_DNS_SEARCH_SUDOERS}"
+
+# script
+echo "#!/usr/bin/env bash" > "${WSL2_DNS_SEARCH_SCRIPT}"
+echo 'for domain in $("'"${SYSTEM_ROOT}"'/system32/WindowsPowerShell/v1.0/powershell.exe" -NoProfile -Command "(Get-DnsClientGlobalSetting).SuffixSearchList" | tr -d "\\r"); do' >> "${WSL2_DNS_SEARCH_SCRIPT}"
+
+cat - >> "${WSL2_DNS_SEARCH_SCRIPT}" << 'EOF'
+  domain="${domain//./\\.}"
+  if ! grep -q "^ *search" /etc/resolv.conf; then
+    sed -i '$asearch '"${domain}" /etc/resolv.conf
+  else
+    sed -i '/^ *search .*'"${domain}"'( |$)/n;
+            s/^ *search .*/& '"${domain}/" /etc/resolv.conf
+  fi
+done
+EOF
+
+chmod 755 "${WSL2_DNS_SEARCH_SCRIPT}"
+
+echo "Configured"
