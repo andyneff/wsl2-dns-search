@@ -11,3 +11,12 @@ You can't just use the `wsl.conf` file to disable the auto generation of `resolv
 ## Solution
 
 So everytime a WSL window is opened (running bash) the profile files are run, and this added one to patch the resolv.conf file. If you use multiple WSL2 distros, you will need to install this in each WSL2 distro
+
+## Installation
+
+1. git Clone this repo in WSL2
+2. `sudo ./wsl2-dns-search-setup.sh`
+
+## Uninstall
+
+1. `sudo ./wsl2-dns-search-unsetup.sh`
