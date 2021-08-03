@@ -10,9 +10,23 @@ You can't just use the `wsl.conf` file to disable the auto generation of `/etc/r
 
 ## Solution
 
-So every time a WSL window is opened (running bash) the profile files are run, and this added one to patch the `/etc/resolv.conf` file. If you use multiple WSL2 distros, you will need to install this in each WSL2 distro
+So every time a WSL window is opened (running bash) the profile files are run, and this added one to patch the `/etc/resolv.conf` file. If you use multiple WSL2 distros, you will need to install this (and its dependencies) in each WSL2 distro.
 
 ## Installation
+
+Dependencies:
+
+- `sudo`. You can use gosu or su-exec, but these are not secure like `sudo`. If you _must_, run this before running the setup script:
+
+      function sudo()
+      {
+        gosu root "${@}"
+      }
+      export -f sudo
+
+- `supervisord` - Allows us to maintain daemons the _same_ way on many different Linux distros
+- `inotifywait` - Allows us to monitor `resolv.conf` changes.
+
 
 1. git Clone this repo in WSL2
 2. `sudo ./wsl2-dns-search-setup.sh`
@@ -20,8 +34,3 @@ So every time a WSL window is opened (running bash) the profile files are run, a
 ## Uninstall
 
 1. `sudo ./wsl2-dns-search-unsetup.sh`
-
-## Problems
-
-1. `/etc/resolv.conf` reverts. Every time `wsl` is called for that distro, it will regenerate `/etc/resolv.conf`. This means every time a new bash is opened, it will be regenerated, but it will be patches a second later by this fix. However, if e.g. `wsl -d {distro name} ls` is called, then the file will be regenerated and not get patched. The easiest way to fix this will be open a new bash or `sudo /usr/local/sbin/wsl2-dns-search.sh`.
-    - If other cases continue to prevail, a notify solution will be added.

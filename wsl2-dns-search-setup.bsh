@@ -7,48 +7,43 @@ if [ ${EUID:-$(id -u)} -ne 0 ]; then
   exit 1
 fi
 
-source "$(\cd "$(dirname "${BASH_SOURCE[0]}")"; \pwd)"/common.env
+WSL2_DNS_SEARCH_CWD="$(\cd "$(dirname "${BASH_SOURCE[0]}")"; \pwd)"
+source "${WSL2_DNS_SEARCH_CWD}/common.env"
 
-if ! command -v &> /dev/null; then
-  source /etc/os-release
-
-  case "${ID}" in
-    alpine)
-      apk add --no-cache sudo
-      ;;
-    *)
-      echo "You need to install sudo for this to work right"
-      # You can use gosu or su-exec, but that is not secure. Run this before running this script:
-      # function sudo()
-      # {
-      #   gosu root "${@}"
-      # }
-      # export -f sudo
-      ;;
-  esac
-fi
-
-# profile
-echo "sudo \"${WSL2_DNS_SEARCH_SCRIPT}\" & disown" > "${WSL2_DNS_SEARCH_PROFILE}"
-
-# sudoers
-echo "ALL ALL=(ALL) NOPASSWD: ${WSL2_DNS_SEARCH_SCRIPT}" > "${WSL2_DNS_SEARCH_SUDOERS}"
-
-# script
-echo "#!/usr/bin/env bash" > "${WSL2_DNS_SEARCH_SCRIPT}"
-echo 'for domain in $("'"${SYSTEM_ROOT}"'/system32/WindowsPowerShell/v1.0/powershell.exe" -NoProfile -Command "(Get-DnsClientGlobalSetting).SuffixSearchList" | tr -d "\\r"); do' >> "${WSL2_DNS_SEARCH_SCRIPT}"
-
-cat - >> "${WSL2_DNS_SEARCH_SCRIPT}" << 'EOF'
-  domain="${domain//./\\.}"
-  if ! grep -q "^ *search" /etc/resolv.conf; then
-    sed -i '$asearch '"${domain}" /etc/resolv.conf
-  else
-    sed -Ei '/^ *search .*'"${domain}"'( |$)/n;
-             s/^ *search .*/& '"${domain}/" /etc/resolv.conf
+for cmd in sudo supervisord inotifywait; do
+  if ! command -v "${cmd}" &> /dev/null; then
+    echo "You need to install ${cmd} for this to work right"
   fi
 done
-EOF
 
+function regex_escape()
+{
+  local out=''
+  local -i i=0
+  local str="${1}"
+
+  while (( i < ${#str} )); do
+    if [[ ${str:$i:1} =~ [[$.*\\/^] ]]; then
+      out+="\\${str:$i:1}"
+    else
+      out+="${str:$i:1}"
+    fi
+    i+=1
+  done
+  echo "$out"
+}
+
+# profile
+cp "${WSL2_DNS_SEARCH_CWD}/wsl2-dns-search.profile" "${WSL2_DNS_SEARCH_PROFILE}"
+
+# sudoers
+cp "${WSL2_DNS_SEARCH_CWD}/wsl2-dns-search.sudo" "${WSL2_DNS_SEARCH_SUDOERS}"
+
+# conf
+sed "s|%%WSL2_DNS_SEARCH_SCRIPT%%|$(regex_escape "${WSL2_DNS_SEARCH_SCRIPT}")|" "${WSL2_DNS_SEARCH_CWD}/wsl2-dns-search.conf" > "${WSL2_DNS_SEARCH_CONF}"
+
+# script
+sed "s|%%SYSTEM_ROOT%%|$(regex_escape "${SYSTEM_ROOT}")|" "${WSL2_DNS_SEARCH_CWD}/wsl2-dns-search.sh" > "${WSL2_DNS_SEARCH_SCRIPT}"
 chmod 755 "${WSL2_DNS_SEARCH_SCRIPT}"
 
 echo "Configured"
