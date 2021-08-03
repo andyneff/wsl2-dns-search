@@ -14,5 +14,12 @@ function patch_etc_resolv()
 }
 
 while patch_etc_resolv; do
-  inotifywait -e close_write,delete /etc/resolv.conf
+  if ! inotifywait -e close_write /etc/resolv.conf; then
+    # Returns 1 if the files was deleted
+    while [ ! -e /etc/resolv.conf ]; do
+      sleep 1
+    done
+    # Wait for file to regenerate, it usually happens so fast, it's recreated
+    # this look even checks, and zero sleeps occur
+  fi
 done

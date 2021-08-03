@@ -47,3 +47,6 @@ sed "s|%%SYSTEM_ROOT%%|$(regex_escape "${SYSTEM_ROOT}")|" "${WSL2_DNS_SEARCH_CWD
 chmod 755 "${WSL2_DNS_SEARCH_SCRIPT}"
 
 echo "Configured"
+
+echo "Starting..."
+source "${WSL2_DNS_SEARCH_PROFILE}"
