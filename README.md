@@ -1,6 +1,6 @@
-# Fix DNS Search in WSL2
+# Getting DNS Search in WSL2
 
-WSL2 does not support copying the DNS Search like WSL1. This is a fix for until someone does something better
+WSL2 does not support copying the DNS Search like WSL1. This is a workaround for until someone does something better
 
 ## Problem
 
