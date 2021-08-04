@@ -16,13 +16,15 @@ So every time a WSL window is opened (running bash) the profile files are run, a
 
 Dependencies:
 
-- `sudo`. You can use gosu or su-exec, but these are not secure like `sudo`. If you _must_, run this before running the setup script:
+- `sudo`. You can use gosu or su-exec, but these are not secure like `sudo`. If you _must_, run these commands before running `wsl2-dns-search-setup.sh`:
 
-      function sudo()
-      {
-        gosu root "${@}"
-      }
-      export -f sudo
+  ```bash
+  function sudo()
+  {
+    gosu root "${@}"
+  }
+  export -f sudo
+  ```
 
 - `supervisord` - Allows us to maintain daemons the _same_ way on many different Linux distros
 - `inotifywait` - Allows us to monitor `resolv.conf` changes.
