@@ -1,3 +1,4 @@
 
 ALL ALL=(ALL) NOPASSWD: /usr/bin/supervisorctl status
 ALL ALL=(ALL) NOPASSWD: /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+ALL ALL=(ALL) NOPASSWD: /usr/bin/supervisord -c /etc/supervisord.conf
