@@ -1,3 +1,7 @@
+# _Deprecated_
+
+[DNS Tunneling](https://learn.microsoft.com/en-us/windows/wsl/networking#dns-tunneling) appears to fix this problem properly
+
 # Getting DNS Search in WSL2
 
 WSL2 does not support copying the DNS Search like WSL1. This is a workaround for until someone does something better
